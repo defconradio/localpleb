@@ -1,3 +1,14 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+// Load keystore properties
+val keystoreProperties = Properties().apply {
+    val keystoreFile = rootProject.file("keystore.properties")
+    if (keystoreFile.exists()) {
+        load(FileInputStream(keystoreFile))
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,10 +29,19 @@ android {
         minSdk = 28
         //noinspection OldTargetApi
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 10001 // Alpha 1
+        versionName = "1.0.0-alpha1" // Alpha 1
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProperties["storeFile"] ?: "")
+            storePassword = keystoreProperties["storePassword"] as String?
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+        }
     }
 
     buildTypes {
@@ -31,6 +51,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
