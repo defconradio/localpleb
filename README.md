@@ -23,8 +23,8 @@ This project was originally developed as an Android app, but is currently being 
 - End-to-end encrypted private messaging ([NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md) compliant)
 
 ## Protocols Used
-- [NIP-15: Nostr Public Chat](https://github.com/nostr-protocol/nips/blob/master/15.md)
-- [NIP-17: Nostr Encrypted Direct Messages](https://github.com/nostr-protocol/nips/blob/master/17.md)
+- [NIP-15: Nostr Publications](https://github.com/nostr-protocol/nips/blob/master/15.md)
+- [NIP-17: Nostr Encrypted Chat](https://github.com/nostr-protocol/nips/blob/master/17.md)
 
 ## Disclaimer
 This is an alpha release and should only be used for testing and proof of concept purposes. Features and security are experimental and may change.

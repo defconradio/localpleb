@@ -63,7 +63,7 @@ fun OrderScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Order")
+                        Text("Pleb Chat")
                         // Text(
                         //     text = "EOSE: $eoseHit",
                         //     style = MaterialTheme.typography.bodySmall,

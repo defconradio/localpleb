@@ -179,7 +179,7 @@ fun OrderItem(order: OrderUiModel, onClick: () -> Unit) {
                 Text(
                     // Display subject if available, otherwise generate a title from participants
                     //text = order.tags.find { it.size > 1 && it[0] == "subject" }?.getOrNull(1) ?: "Chat without subject ${order.pubkey}",
-                    text = "order pubkey: ${order.pubkey}",
+                    text = "pleb pubkey: ${order.pubkey}",
 
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -209,7 +209,7 @@ fun OrderItem(order: OrderUiModel, onClick: () -> Unit) {
                 // Show conversation id (subject) instead of participant count
                 Text(
                     //TODO remove all this nonsense when finish just keep the data
-                    text = "product event id: " + (order.tags.find { it.size > 1 && it[0] == "subject" }?.getOrNull(1) ?: "message without subject, no product event id"),
+                    text = "30018 event id: " + (order.tags.find { it.size > 1 && it[0] == "subject" }?.getOrNull(1) ?: "message without subject, no 30018 event id"),
                     style = MaterialTheme.typography.labelSmall
                 )
             }
