@@ -1,0 +1,23 @@
+# Security TODOs for nsec (private key) handling in AccountScreen
+
+## Potential nsec Leaks
+- nsec is held in memory as a String in ViewModel/UI; cannot be zeroed out, may persist until GC.
+- If app is backgrounded or process is dumped (rooted device/memory dump), nsec could be extracted.
+- nsec is shown in UI after authentication; if user leaves screen with key visible, it could be captured (e.g. screenshot).
+- Android allows screenshots by default; consider using FLAG_SECURE to prevent this.
+- Never log nsec or objects containing it (including toasts, logs, crash reports).
+- If copy-to-clipboard is added, clipboard is accessible by other apps.
+- If persisting nsec, always use encrypted storage (EncryptedSharedPreferences, Keystore, etc.).
+- Crash reporting tools may capture sensitive fields; ensure nsec is excluded.
+
+## Recommendations
+- Add FLAG_SECURE to MainActivity to prevent screenshots/screen recording.
+- Hide nsec (set isPrivateKeyVisible = false) when app is backgrounded or screen is left.
+- Never log or persist nsec in plaintext.
+- Consider using CharArray for extra-sensitive handling (advanced, not typical in UI).
+- Only load nsec when needed; clear references when not needed.
+- Use secure storage for persistence.
+- If copy-to-clipboard is implemented, clear clipboard after timeout.
+
+
+

@@ -1,0 +1,11 @@
+./gradlew :testrun:crypto
+./gradlew :testrun:nostr
+./gradlew :testrun:nip44
+./gradlew :testrun:nip17
+./gradlew :testrun:nip13
+
+./gradlew :testrun:test --tests "cryptoTest"
+
+
+#run the nip44 test 
+./gradlew :crypto:jvmTest

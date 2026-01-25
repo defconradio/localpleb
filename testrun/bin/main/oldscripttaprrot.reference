@@ -1,0 +1,277 @@
+/*tests/src/commonTest/kotlin/fr/acinq/secp256k1/Musig2Test.kt:23
+ * Nostr Onboarding Key Management Example
+ *
+ * This script demonstrates the two essential cryptographic operations for Nostr user onboarding:
+ * 1. Generating a new secp256k1 private key (for new users)
+ * 2. Importing an existing private key (for returning users)
+ *
+ * - The private key ("secret") is a 32-byte value, securely generated or provided by the user.
+ * - The public key is derived from the private key and is used as the user's Nostr identity.
+ * - The public key is always compressed (33 bytes) for Nostr and Bitcoin.
+ *
+ * Best practices for Nostr onboarding:
+ * - Always use a secure random generator for new keys (as shown here).
+ * - Validate imported keys: must be 32 bytes, >0 and < curve order.
+ * - Encode keys for user display or backup:
+ *   - Private key: bech32 encoded as "nsec1..."
+ *   - Public key: bech32 encoded as "npub1..."
+ *   - Use a library for bech32 encoding/decoding (see below for multiplatform example).
+ * - Never log or expose private keys in production apps.
+ * - On Android, store the private key securely using the Android Keystore system.
+ *   - Never store raw keys in plain SharedPreferences or files.
+ *   - Use hardware-backed keystore if available.
+ * - The onboarding UI should let users:
+ *   - Generate a new key pair ("Create new account")
+ *   - Import an existing private key ("Restore account")
+ *   - Show/backup their public key (and optionally private key, with warnings)
+ *
+ * ---
+ *
+ * Bech32 encoding for Nostr and Bitcoin (multiplatform):
+ * - Add the dependency (see https://github.com/bitcoindevkit/bitcoin-kmp/releases for latest):
+ *     implementation("org.bitcoindevkit:bitcoin-kmp:<latest>")
+ * - Use Bech32.encode for bech32, Bech32.encodeBech32m for bech32m
+ * - For Nostr, use HRPs: "npub" (public), "nsec" (private)
+ * - For Bitcoin, use HRPs: "bc" (mainnet), "tb" (testnet)
+ * - Compressed public keys are 33 bytes (prefix 0x02/0x03 + 32 bytes). For Nostr and Bitcoin, use the full compressed key.
+ *
+ * ---
+ *
+ * ACINQ secp256k1-kmp public API summary (https://github.com/ACINQ/secp256k1-kmp):
+ *
+ * - verify(signature: ByteArray, message: ByteArray, pubkey: ByteArray): Boolean
+ * - sign(message: ByteArray, privkey: ByteArray): ByteArray
+ * - verifySchnorr(signature: ByteArray, data: ByteArray, pub: ByteArray): Boolean
+ * - signSchnorr(data: ByteArray, sec: ByteArray, auxrand32: ByteArray?): ByteArray
+ * - signatureNormalize(sig: ByteArray): Pair<ByteArray, Boolean>
+ * - secKeyVerify(privkey: ByteArray): Boolean
+ * - pubkeyCreate(privkey: ByteArray): ByteArray
+ * - pubkeyParse(pubkey: ByteArray): ByteArray
+ * - privKeyNegate(privkey: ByteArray): ByteArray
+ * - privKeyTweakAdd(privkey: ByteArray, tweak: ByteArray): ByteArray
+ * - privKeyTweakMul(privkey: ByteArray, tweak: ByteArray): ByteArray
+ * - pubKeyNegate(pubkey: ByteArray): ByteArray
+ * - pubKeyTweakAdd(pubkey: ByteArray, tweak: ByteArray): ByteArray
+ * - pubKeyTweakMul(pubkey: ByteArray, tweak: ByteArray): ByteArray
+ * - pubKeyCombine(pubkeys: Array<ByteArray>): ByteArray
+ * - ecdh(privkey: ByteArray, pubkey: ByteArray): ByteArray
+ * - ecdsaRecover(sig: ByteArray, message: ByteArray, recid: Int): ByteArray
+ * - compact2der(sig: ByteArray): ByteArray
+ * - pubKeyCompress(pubkey: ByteArray): ByteArray
+ * - musigNonceGen(...)
+ * - musigNonceGenCounter(...)
+ * - musigNonceAgg(pubnonces: Array<ByteArray>): ByteArray
+ * - musigPubkeyAgg(pubkeys: Array<ByteArray>, keyaggCache: ByteArray?): ByteArray
+ *
+ * ACINQ bitcoin-kmp public API summary (https://github.com/ACINQ/bitcoin-kmp):
+ *
+ * - Base58: encode/decode, checksum, prefix handling (Base58, Base58Check)
+ * - Bech32: encode/decode for Bech32 and Bech32m addresses
+ * - ByteVector, ByteVector32, ByteVector64: immutable byte array utilities for cryptography
+ * - Crypto: hashing (SHA256, RIPEMD160, hash160, hash256, hmac, etc.), random bytes, key derivation
+ * - MnemonicCode: BIP-39 mnemonic phrase generation and seed derivation
+ * - Bitcoin: network parameters (Mainnet, Testnet3, Regtest, etc.), constants, utility functions
+ * - Script: Bitcoin script construction, parsing, evaluation (including Taproot, ControlBlock, etc.)
+ * - Protocol: Bitcoin protocol constants and helpers
+ * - SigHash, SigVersion: signature hash types and versions for transaction signing
+ * - Descriptor: miniscript and output descriptor parsing/utilities
+ * - Pack: byte packing/unpacking utilities
+ * - UInt256: 256-bit unsigned integer for hashes and IDs
+ * - Musig2: MuSig2 multi-signature protocol helpers
+ * - LexicographicalOrdering: BIP-67 ordering utilities
+ * - I/O: ByteArrayInput/Output for serialization
+ *
+ * ---
+ *
+ * XonlyPublicKey (fr.acinq.bitcoin.XonlyPublicKey):
+ * - Represents a BIP-340 x-only public key (32 bytes, y always even).
+ * - Use PublicKey.xOnly() or PrivateKey.xOnlyPublicKey() to obtain an x-only pubkey.
+ * - Provides helpers for Taproot tweaks, address generation, and key aggregation.
+ * - Always use this class for Taproot, Musig2, and Schnorr operations (do not manually slice bytes).
+ *
+ * Example:
+ *   val pubKey = PublicKey(pubKeyCompressed)
+ *   val xOnly = pubKey.xOnly() // XonlyPublicKey
+ *   val privKey = PrivateKey(privKeyBytes)
+ *   val xOnly2 = privKey.xOnlyPublicKey() // XonlyPublicKey
+ *
+ * See the library source for full details and additional helpers.
+ */
+import fr.acinq.secp256k1.*
+import fr.acinq.bitcoin.Bech32
+import fr.acinq.bitcoin.*
+import fr.acinq.bitcoin.XonlyPublicKey
+import fr.acinq.bitcoin.PrivateKey
+import fr.acinq.bitcoin.PublicKey
+import fr.acinq.bitcoin.Crypto
+import fr.acinq.bitcoin.Block
+import java.security.SecureRandom
+
+/**
+ * Generates a new random valid secp256k1 private key (32 bytes).
+ * Uses java.security.SecureRandom for secure randomness and validates the key.
+ */
+fun generateRandomPrivateKey(): ByteArray {
+    val random = SecureRandom()
+    while (true) {
+        val candidate = ByteArray(32)
+        random.nextBytes(candidate)
+        // TODO: Replace all direct Secp256k1 usage with bitcoin-kmp PrivateKey and PublicKey classes for all key validation and operations in future implementations/tests.
+        if (Secp256k1.secKeyVerify(candidate)) return candidate
+    }
+}
+
+/**
+ * Derives the compressed public key (33 bytes) from a valid private key.
+ * Throws if the private key is invalid.
+ */
+fun compressedPublicKeyFromPrivateKey(privKey: ByteArray): ByteArray {
+    require(Secp256k1.secKeyVerify(privKey)) { "Invalid private key" }
+    val pubKey = Secp256k1.pubkeyCreate(privKey)
+    return Secp256k1.pubKeyCompress(pubKey)
+}
+
+/**
+ * Converts a ByteArray to 5-bit words for bech32 encoding (8-to-5 bit conversion).
+ */
+fun convert8to5(data: ByteArray): ByteArray {
+    var acc = 0
+    var bits = 0
+    val result = mutableListOf<Byte>()
+    for (b in data) {
+        acc = (acc shl 8) or (b.toInt() and 0xff)
+        bits += 8
+        while (bits >= 5) {
+            result.add(((acc shr (bits - 5)) and 0x1f).toByte())
+            bits -= 5
+        }
+    }
+    if (bits > 0) {
+        result.add(((acc shl (5 - bits)) and 0x1f).toByte())
+    }
+    return result.toByteArray()
+}
+
+/**
+ * Extracts the x-only public key (32 bytes) from a private key using secp256k1.
+ * Uses secp256k1's xonlyPubkeyFromSeckey if available, otherwise extracts from compressed pubkey.
+ */
+fun xOnlyPubKeyFromPrivateKey(privKey: ByteArray): ByteArray {
+    // If the library provides an x-only pubkey method, use it:
+    // return Secp256k1.xonlyPubkeyFromSeckey(privKey)
+    // Otherwise, fallback to extracting from compressed pubkey:
+    val pubKeyCompressed = compressedPublicKeyFromPrivateKey(privKey)
+    return pubKeyCompressed.copyOfRange(1, 33)
+}
+
+/**
+ * Computes the default Taproot tweak for a given x-only public key, as used by Bitcoin Core and BIP-341.
+ *
+ * - For key-path Taproot outputs (no script tree), the tweak is:
+ *   tweak = SHA256(x-only-pubkey || merkle_root)
+ *   where merkle_root is 32 bytes of 0x00 if there is no script path.
+ *   final tweak if not script = SHA256(x-only-pubkey || 32 bytes of 0x00)
+ * - This is the standard tweak used by Bitcoin Core for single-key Taproot outputs.
+ *
+ * @param xOnlyPubKey 32-byte x-only public key
+ * @return 32-byte tweak
+ */
+fun taprootBip341Tweak(xOnlyPubKey: ByteArray): ByteArray {
+    require(xOnlyPubKey.size == 32) { "xOnlyPubKey must be 32 bytes" }
+    val merkleRoot = ByteArray(32) { 0x00 }
+    return fr.acinq.bitcoin.Crypto.sha256(xOnlyPubKey + merkleRoot)
+}
+
+fun main() {
+    // --- New user: generate a new key pair ---
+    val newPrivKey = generateRandomPrivateKey()
+    val newPrivKeyObj = PrivateKey(newPrivKey)
+    val newPubKeyCompressed = compressedPublicKeyFromPrivateKey(newPrivKey)
+    val newPubKeyObj = PublicKey(newPubKeyCompressed)
+    val newXOnly = newPrivKeyObj.xOnlyPublicKey()
+    println("New Private Key (hex): ${newPrivKey.joinToString("") { "%02x".format(it) }}")
+    println("New Compressed Public Key (hex): ${newPubKeyCompressed.joinToString("") { "%02x".format(it) }}")
+    println("New X-Only Public Key (hex): ${newXOnly.value.toByteArray().joinToString("") { "%02x".format(it) }}")
+
+    // --- Existing user: import a private key ---
+    val importedPrivKeyHex = "c3975b71347b41a066516e66ae15596fe336c3e290d2dba1dbc9a98e249d3c38"
+    val importedPrivKey = importedPrivKeyHex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+    val importedPrivKeyObj = PrivateKey(importedPrivKey)
+    val importedPubKeyCompressed = compressedPublicKeyFromPrivateKey(importedPrivKey)
+    val importedPubKeyObj = PublicKey(importedPubKeyCompressed)
+    val importedXOnly = importedPrivKeyObj.xOnlyPublicKey()
+    println("Imported Private Key (hex): $importedPrivKeyHex")
+    println("Imported Compressed Public Key (hex): ${importedPubKeyCompressed.joinToString("") { "%02x".format(it) }}")
+    println("Imported X-Only Public Key (hex): ${importedXOnly.value.toByteArray().joinToString("") { "%02x".format(it) }}")
+
+    // --- Multiplatform bech32 encoding examples (using ACINQ bitcoin-kmp) ---
+    // Convert the compressed public key to 5-bit words for bech32 encoding
+    val pubKeyWords = convert8to5(importedPubKeyCompressed).toTypedArray()
+
+    // Nostr bech32 (npub, bech32)
+    val npubBech32 = Bech32.encode("npub", pubKeyWords, Bech32.Encoding.Bech32)
+    println("Nostr npub (bech32): $npubBech32")
+
+    // --- Bitcoin bech32 (P2WPKH, bc1...) address example ---
+    // Hash the compressed public key: SHA256 then RIPEMD160
+    val pubKeyHash = Crypto.ripemd160(Crypto.sha256(importedPubKeyCompressed))
+    val p2wpkhData = byteArrayOf(0x00) + pubKeyHash // witness version 0 + pubkey hash
+    val p2wpkhWords = convert8to5(p2wpkhData).toTypedArray()
+    val p2wpkhAddress = Bech32.encode("bc", p2wpkhWords, Bech32.Encoding.Bech32)
+    println("Bitcoin bech32 (bc1...): $p2wpkhAddress")
+
+    // --- Bitcoin bech32m (Taproot, bc1p...) address example ---
+    val taprootData = byteArrayOf(0x01) + importedXOnly.value.toByteArray() // witness version 1 + x-only pubkey
+    val taprootWords = convert8to5(taprootData).toTypedArray()
+    val taprootAddress = Bech32.encode("bc", taprootWords, Bech32.Encoding.Bech32m)
+    println("Bitcoin bech32m (bc1p...): $taprootAddress")
+
+    // --- Bitcoin testnet3 bech32 (P2WPKH, tb1...) address example ---
+    val p2wpkhTestnetData = byteArrayOf(0x00) + pubKeyHash // witness version 0 + pubkey hash (same as mainnet, different HRP)
+    val p2wpkhTestnetWords = convert8to5(p2wpkhTestnetData).toTypedArray()
+    val p2wpkhTestnetAddress = Bech32.encode("tb", p2wpkhTestnetWords, Bech32.Encoding.Bech32)
+    println("Bitcoin testnet3 bech32 (tb1...): $p2wpkhTestnetAddress")
+
+    // --- Bitcoin testnet3 bech32m (Taproot, tb1p...) address example (untweaked, for demonstration only) ---
+    // NOTE: This is NOT the valid Taproot address. The official Taproot address MUST use the tweaked x-only pubkey (see below).
+    val taprootTestnetData = byteArrayOf(0x01) + importedXOnly.value.toByteArray() // witness version 1 + x-only pubkey (same as mainnet, different HRP)
+    val taprootTestnetWords = convert8to5(taprootTestnetData).toTypedArray()
+    val taprootTestnetAddress = Bech32.encode("tb", taprootTestnetWords, Bech32.Encoding.Bech32m)
+    println("Bitcoin testnet3 bech32m (tb1p..., untweaked, NOT valid Taproot): $taprootTestnetAddress")
+    println("Taproot witness program (hex, untweaked): ${taprootTestnetData.joinToString("") { "%02x".format(it) }}")
+
+    // --- Example: tweak x-only pubkey and show bech32m (Taproot, tb1p...) for testnet3 ---
+    // BIP-341/BTC Core default tweak: SHA256(x-only-pubkey || 32 bytes of 0x00)
+    val bip341Tweak = taprootBip341Tweak(importedXOnly.value.toByteArray())
+    println("Taproot BIP341 tweak (hex): ${bip341Tweak.joinToString("") { "%02x".format(it) }}")
+    println("Taproot BIP341 tweak length: ${bip341Tweak.size} bytes")
+    val tweakedPubKey = Secp256k1.pubKeyTweakAdd(byteArrayOf(0x02) + importedXOnly.value.toByteArray(), bip341Tweak)
+    // Extract x-only from tweaked compressed pubkey
+    val tweakedXOnly = tweakedPubKey.copyOfRange(1, 33)
+    val tweakedTaprootTestnetData = byteArrayOf(0x01) + tweakedXOnly
+    val tweakedTaprootTestnetWords = convert8to5(tweakedTaprootTestnetData).toTypedArray()
+    val tweakedTaprootTestnetAddress = Bech32.encode("tb", tweakedTaprootTestnetWords, Bech32.Encoding.Bech32m)
+    println("Bitcoin testnet3 bech32m (tb1p..., tweaked, BIP341, VALID Taproot): $tweakedTaprootTestnetAddress")
+    println("Taproot witness program (hex, tweaked): ${tweakedTaprootTestnetData.joinToString("") { "%02x".format(it) }}")
+
+    // --- Example: correct Taproot tweak using outputKey (BIP341) ---
+    // This is the BIP341-compliant way to tweak an x-only pubkey for Taproot.
+    val (tweakedXOnlyObj, parity) = importedXOnly.outputKey(Crypto.TaprootTweak.NoScriptTweak)
+    println("Tweaked Taproot X-Only Public Key (hex): ${tweakedXOnlyObj.value.toByteArray().joinToString("") { "%02x".format(it) }}")
+    println("Tweaked Taproot parity (negated?): $parity")
+    val tweakedTaprootTestnetData2 = byteArrayOf(0x01) + tweakedXOnlyObj.value.toByteArray()
+    val tweakedTaprootTestnetWords2 = convert8to5(tweakedTaprootTestnetData2).toTypedArray()
+    val tweakedTaprootTestnetAddress2 = Bech32.encode("tb", tweakedTaprootTestnetWords2, Bech32.Encoding.Bech32m)
+    println("Bitcoin testnet3 bech32m (tb1p..., tweaked, BIP341, VALID Taproot, outputKey): $tweakedTaprootTestnetAddress2")
+    println("Taproot witness program (hex, tweaked, outputKey): ${tweakedTaprootTestnetData2.joinToString("") { "%02x".format(it) }}")
+
+    // --- Example: get Taproot address exactly as Bitcoin Core does ---
+    val taprootCoreAddress = importedXOnly.p2trAddress(Block.Testnet3GenesisBlock.hash)
+    println("Bitcoin Core-style Taproot address (tb1p...): $taprootCoreAddress")
+
+    // To decode:
+    // val (hrp, data, encoding) = Bech32.decode(npubBech32)
+    // println("Decoded HRP: $hrp, encoding: $encoding, data: ${data.joinToString("") { "%02x".format(it) }})")
+
+    // See: https://github.com/ACINQ/bitcoin-kmp
+}

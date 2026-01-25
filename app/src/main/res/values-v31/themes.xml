@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Pleb2.Launcher" parent="Theme.Pleb2">
+        <item name="android:windowSplashScreenBackground">#FFCB7E</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/in_launcher_padded</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#FFCB7E</item>
+    </style>
+</resources>

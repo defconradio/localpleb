@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Logo padded with:
+    convert in_launcher.png -gravity center -background none -extent 432x432 in_launcher_padded.png
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <bitmap android:src="@drawable/in_launcher_padded"/>
+    </item>
+</layer-list>
