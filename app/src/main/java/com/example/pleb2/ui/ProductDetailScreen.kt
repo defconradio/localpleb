@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ConnectWithoutContact
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Store
@@ -522,7 +523,8 @@ fun ProductDetailScreen(
                                         )
                                     ) {
                                         Icon(
-                                            Icons.Default.ShoppingCart,
+                                            //Icons.Default.ShoppingCart,
+                                            Icons.Default.ConnectWithoutContact,
                                             contentDescription = stringResource(R.string.buy),
                                             tint = MaterialTheme.colorScheme.onTertiary
                                         )

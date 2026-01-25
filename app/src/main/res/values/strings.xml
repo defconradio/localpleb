@@ -18,7 +18,7 @@
     <string name="stall_label">Stall: %1$s</string>
     <string name="seller_label">By: %1$s…</string>
     <string name="created_label">Created: %1$s</string>
-    <string name="buy">Buy</string>
+    <string name="buy">Connect</string>
     <string name="in_stock_quantity">In Stock (%1$d)</string>
     <string name="out_of_stock">Out of Stock</string>
     <string name="buy_for">Buy for %1$.2f %2$s</string>

@@ -33,8 +33,9 @@ interface RelayRepository {
 val DEFAULT_RELAYS = listOf("wss://relay.damus.io",
     "wss://nos.lol",
     "wss://relay.snort.social",
-    "wss://relay.nostr.info",
-    "wss://brb.io",
-    "wss://nostr.wine",
-    "wss://eden.nostr.land",
-    "wss://nostr.onsats.org")
+    //"wss://relay.nostr.info",
+    //"wss://brb.io",
+    //"wss://nostr.wine",
+    //"wss://eden.nostr.land",
+    //"wss://nostr.onsats.org"
+    )
