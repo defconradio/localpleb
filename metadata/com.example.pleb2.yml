@@ -4,7 +4,7 @@ License: MIT
 SourceCode: https://github.com/defconradio/localpleb
 IssueTracker: https://github.com/defconradio/localpleb/issues
 
-AutoName: LocalPlebs
+AutoName: LocalPleb
 Summary: Connect with local plebs using the Nostr protocol
 Description: |-
     LocalPlebs is a simple app designed to connect with local plebs around the world
