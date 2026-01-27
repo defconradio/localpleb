@@ -68,3 +68,42 @@
 # Keep SLF4J classes, as it's a common logging facade
 -keep class org.slf4j.** { *; }
 -dontwarn org.slf4j.**
+
+# Keep all classes in the z1 package and their members
+-keep class z1.** { *; }
+
+# Keep all classes with static initializers
+-keepclassmembers class * {
+    static <clinit>();
+}
+
+# Keep all classes in obfuscated packages seen in the stack trace
+-keep class z1.** { *; }
+-keep class y1.** { *; }
+-keep class a.a.** { *; }
+-keep class b1.** { *; }
+-keep class q2.** { *; }
+-keep class K2.** { *; }
+
+# Keep all classes in your app's package
+-keep class com.example.pleb2.** { *; }
+
+# DEBUG: Keep all classes and members (for debugging only, remove after issue is found)
+-keep class * { *; }
+
+# Add missing dontwarn rules from missing_rules.txt
+-dontwarn com.google.api.client.http.GenericUrl
+-dontwarn com.google.api.client.http.HttpHeaders
+-dontwarn com.google.api.client.http.HttpRequest
+-dontwarn com.google.api.client.http.HttpRequestFactory
+-dontwarn com.google.api.client.http.HttpResponse
+-dontwarn com.google.api.client.http.HttpTransport
+-dontwarn com.google.api.client.http.javanet.NetHttpTransport$Builder
+-dontwarn com.google.api.client.http.javanet.NetHttpTransport
+-dontwarn java.awt.Component
+-dontwarn java.awt.GraphicsEnvironment
+-dontwarn java.awt.HeadlessException
+-dontwarn java.awt.Window
+-dontwarn java.lang.management.ManagementFactory
+-dontwarn java.lang.management.RuntimeMXBean
+-dontwarn org.joda.time.Instant

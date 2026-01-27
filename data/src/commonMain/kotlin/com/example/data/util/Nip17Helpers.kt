@@ -85,8 +85,9 @@ object Nip17Helpers {
         kind1059Envelope: NostrEnvelope,
         recipientPrivateKey: ByteArray
     ): NostrEnvelope? {
-        println("[Nip17Helpers.kt] kind1059Envelope: $kind1059Envelope")
-        println("[Nip17Helpers.kt] recipientPrivateKey: ${recipientPrivateKey.joinToString("") { "%02x".format(it) }}")
+        // DANGER REMOVE PRIV KEYS FROM LOGS
+        //println("[Nip17Helpers.kt] kind1059Envelope: $kind1059Envelope")
+        //println("[Nip17Helpers.kt] recipientPrivateKey: ${recipientPrivateKey.joinToString("") { "%02x".format(it) }}")
 
         val kind13Envelope = handleKind1059Event(kind1059Envelope, recipientPrivateKey)
             ?: return null
