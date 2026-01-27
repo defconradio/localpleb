@@ -15,9 +15,9 @@ RepoType: git
 Repo: https://github.com/defconradio/localpleb
 
 Builds:
-  - versionName: 1.0.0-alpha1
-    versionCode: 10001
-    commit: v1.0.0-alpha1
+  - versionName: 1.0.0-alpha2
+    versionCode: 10002
+    commit: v1.0.0-alpha2
     gradle:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
