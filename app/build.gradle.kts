@@ -24,6 +24,13 @@ android {
     namespace = "com.example.pleb2"
     compileSdk = 35
 
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles.
+        includeInBundle = false
+    }
+
     defaultConfig {
         applicationId = "com.example.pleb2"
         minSdk = 28

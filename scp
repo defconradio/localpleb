@@ -1,0 +1,31 @@
+git branch --show-current
+git status
+git add .
+git commit -m "Implement iOS support: WebView, DataStore, DI setup"
+git push -u origin feature/ios-support
+
+
+git checkout -b branchname
+git push -u origin branchname
+
+
+git checkout first_graphs && git merge master
+
+
+./gradlew clean build
+./gradlew kotlinUpgradeYarnLock
+
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+
+./gradlew :composeApp:wasmJsBrowserDevelopmentDistribution --rerun-tasks
+python3 test_enviroment/serve_wasm.py 
+
+./gradlew composeApp:wasmJsBrowserDistribution
+python3 test_enviroment/serve_wasm.py
+
+
+./gradlew :serverApp:installDist && ./serverApp/build/install/serverApp/bin/serverApp
+rm -rf serverApp/build/install/serverApp && ./gradlew :serverApp:installDist && ./serverApp/build/install/serverApp/bin/serverApp
+
+./gradlew :serverApp:run
+adb reverse tcp:8081 tcp:8081
