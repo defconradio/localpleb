@@ -1,49 +1,68 @@
-keystore.properties
-.vscode
-.kotlin
-/amethyst
-/pocAndroidbak*
-/test
-/ai
-events
-deduplication
-state
-nostr_TODO.md
-nostr_reference
-*.scp
-TODO.md
-node_modules
-ref
-screenshots
-*.bak
-*.txt
-package-lock.json
-/reference
-# Android/IntelliJ/Studio
-.gradle/
-/local.properties
-/.idea/
+# .gitignore for aguacate
+
+# --- OS ---
 .DS_Store
+
+# --- Gradle / Build ---
+.gradle/
+**/build/
 /build/
+output.json
+
+# --- Android / Native ---
+/local.properties
+/.cxx/
+/.externalNativeBuild/
 app/build/
-*.iml
 *.apk
 *.ap_*
 *.dex
 *.class
-*.log
+
+# --- Kotlin / IDE caches ---
+.kotlin/
+
+# --- Keystores / Signing ---
 *.keystore
 *.jks
+keystore.properties
+signing.properties
+
+# --- IDEs / Editors ---
+.idea/
+*.iml
+.vscode/
+
+# --- Node / JS ---
+node_modules/
+package-lock.json
+
+# --- Test / Debug / Reports ---
 captures/
-output.json
 # Android test results
 *.ec
 *.hprof
-# Misc
+
+# --- Misc / Temporary ---
+*.log
 *.orig
-# Ignore generated files
-**/build/
-# Sensitive files
-signing.properties
-# End Android/Studio
-.kotlin/
+*.bak
+*.txt
+
+# --- Project-specific ---
+/amethyst
+/pocAndroidbak*
+/test
+/ai
+/events
+/deduplication
+/state
+/nostr_TODO.md
+/nostr_reference
+*.scp
+/TODO.md
+/ref
+/reference
+/screenshots
+
+# End of file
