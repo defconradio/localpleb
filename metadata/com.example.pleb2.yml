@@ -1,15 +1,10 @@
 Categories:
-  - Social
+  - Connectivity
 License: MIT
 SourceCode: https://github.com/defconradio/localpleb
 IssueTracker: https://github.com/defconradio/localpleb/issues
 
 AutoName: LocalPleb
-Summary: Connect with local plebs using the Nostr protocol
-Description: |-
-    LocalPlebs is a simple app designed to connect with local plebs around the world
-    using the Nostr protocol. The app allows users to create public posts and
-    connect with others via fully end-to-end encrypted chat.
 
 RepoType: git
 Repo: https://github.com/defconradio/localpleb
@@ -21,6 +16,14 @@ Builds:
     gradle:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
+  - versionName: 1.0.0-alpha3
+    versionCode: 10003
+    commit: v1.0.0-alpha3
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
+CurrentVersion: 1.0.0-alpha3
+CurrentVersionCode: 10003
