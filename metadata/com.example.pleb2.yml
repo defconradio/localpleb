@@ -4,7 +4,7 @@ License: MIT
 SourceCode: https://github.com/defconradio/localpleb
 IssueTracker: https://github.com/defconradio/localpleb/issues
 
-AutoName: LocalPleb
+AutoName: pleb2
 
 RepoType: git
 Repo: https://github.com/defconradio/localpleb
@@ -16,6 +16,7 @@ Builds:
     gradle:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
+
   - versionName: 1.0.0-alpha3
     versionCode: 10003
     commit: v1.0.0-alpha3
