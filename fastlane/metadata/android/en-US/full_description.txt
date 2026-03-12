@@ -1,0 +1,3 @@
+Pleb2 is an open source connectivity application.
+
+It allows users to connect and interact using the app's supported protocols.
