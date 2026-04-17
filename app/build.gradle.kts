@@ -36,8 +36,8 @@ android {
         minSdk = 28
         //noinspection OldTargetApi
         targetSdk = 35
-        versionCode = 10004 // Alpha 4
-        versionName = "1.0.0-alpha4" // Alpha 3
+        versionCode = 10005 // Alpha 5
+        versionName = "1.0.0-alpha5" // Alpha 5
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -63,6 +63,13 @@ android {
             }
         }
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/version-control-info.textproto"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
