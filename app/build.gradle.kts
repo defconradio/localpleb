@@ -36,8 +36,8 @@ android {
         minSdk = 28
         //noinspection OldTargetApi
         targetSdk = 35
-        versionCode = 10005 // Alpha 5
-        versionName = "1.0.0-alpha5" // Alpha 5
+        versionCode = 10006 // Alpha 5
+        versionName = "1.0.0-alpha6" // Alpha 5
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,7 +66,7 @@ android {
 
     packaging {
         resources {
-            excludes += "/META-INF/version-control-info.textproto"
+            excludes += "META-INF/version-control-info.textproto"
         }
     }
 
