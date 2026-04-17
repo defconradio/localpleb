@@ -31,13 +31,21 @@ android {
         includeInBundle = false
     }
 
+    buildTypes {
+        release {
+            vcsInfo {
+                include = false
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.pleb2"
         minSdk = 28
         //noinspection OldTargetApi
         targetSdk = 35
-        versionCode = 10006 // Alpha 5
-        versionName = "1.0.0-alpha6" // Alpha 5
+        versionCode = 10007 // Alpha 7
+        versionName = "1.0.0-alpha7" // Alpha 7
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,7 +74,9 @@ android {
 
     packaging {
         resources {
-            excludes += "META-INF/version-control-info.textproto"
+            excludes.add("**/*version-control-info.textproto")
+            excludes.add("META-INF/*.textproto")
+            excludes.add("**/*.*proto")
         }
     }
 
@@ -82,6 +92,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
